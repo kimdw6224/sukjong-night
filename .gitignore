@@ -1,0 +1,26 @@
+# 공개 저장소에 포함할 파일을 명시합니다.
+/*
+!/.gitignore
+!/.vercelignore
+!/vercel.json
+!/index.html
+!/style.css
+!/game.js
+!/story.js
+!/art.js
+!/serve.mjs
+!/build.mjs
+!/test-browser.cjs
+!/README.md
+!/assets/
+.env
+.env.*
+node_modules/
+.vercel/
+dist/
+test-output/
+*.zip
+*.pdf
+
+.vercel
+.env*

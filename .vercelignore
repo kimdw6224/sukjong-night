@@ -1,0 +1,11 @@
+*
+!index.html
+!style.css
+!game.js
+!story.js
+!art.js
+!serve.mjs
+!build.mjs
+!vercel.json
+!assets
+!assets/**
