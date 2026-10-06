@@ -102,8 +102,9 @@
     const wrap = el('div', 'dialogue-wrap'), box = el('section', 'dialogue-box');
     const label = el('div', 'speaker-line');
     label.append(el('h1', 'speaker', cast[node.who]?.name || '숙종'));
-    const text = el('p', 'dialogue-text', node.text); text.id = 'current-text'; text.setAttribute('aria-live', 'polite');
-    if (node.who !== 'narrator') box.append(label);
+    const answered = node.type === 'questions' ? node.choices.find(c => state.history.includes(c.answer)) : null;
+    const text = el('p', 'dialogue-text', answered ? node.afterAnswer[answered.answer] : node.text); text.id = 'current-text'; text.setAttribute('aria-live', 'polite');
+    if (node.who !== 'narrator' && !node.thought) box.append(label);
     box.append(text);
     if (node.facts) { const facts = el('ul', 'facts'); node.facts.forEach(f => facts.append(el('li', '', f))); box.append(facts); }
     if (node.choices) {
