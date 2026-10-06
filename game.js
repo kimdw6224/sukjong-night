@@ -62,9 +62,9 @@
     for (const c of ['moon', 'wall', 'wall right', 'roof', 'roof right', 'lantern']) shapes.append(el('div', c));
     back.append(shapes); return back;
   }
-  function header(chapter) {
+  function header() {
     const h = el('header', 'topbar');
-    h.append(el('span', 'brand', '숙종의 밤'), el('span', 'chapter', chapter || '한양의 어느 밤'));
+    if (view !== 'title') h.append(el('span', 'brand', '숙종의 밤'));
     const actions = el('nav', 'top-actions'); actions.setAttribute('aria-label', '게임 메뉴');
     if (state?.history.length) actions.append(button('대화 기록', showHistory, 'quiet'));
     if (view !== 'title') actions.append(button('제목으로', () => { view = 'title'; render(); }, 'quiet'));
@@ -74,19 +74,18 @@
     const layout = el('main', 'title-layout');
     const copy = el('div', 'title-copy');
     const h = el('h1'); h.append(el('span', '', '숙종의'), el('span', '', '밤'));
-    copy.append(h, el('p', 'intro', '왕의 이름을 잠시 내려놓고,\n사람들의 말을 듣는다.'));
+    copy.append(h);
     const menu = el('div', 'title-menu');
     if (state) {
       const done = nodes[state.sceneId].type === 'end';
       menu.append(button(done ? '마지막 결과 보기' : '이어하기', () => { view = 'game'; render(true); }, 'primary'));
       menu.append(button('처음부터', restart));
     } else menu.append(button('시작하기', start, 'primary'));
-    copy.append(menu, el('p', 'title-note', '숙종이 되어 사람들의 말을 듣고 판단하는 이야기.\n실록의 검계 처벌 논의에서 착안한 창작입니다.'));
-    layout.append(copy); shell.append(layout, el('div', 'seal', '말을 듣는 밤'));
+    copy.append(menu);
+    layout.append(copy); shell.append(layout);
   }
   function portrait(node) {
     const stage = el('div', 'stage'); stage.setAttribute('aria-hidden', 'true');
-    stage.append(el('div', 'stage-label', node.title));
     const person = cast[node.who];
     if (!person?.image) return stage;
     const path = art[`${person.image}_${node.face || 'neutral'}`] || art[`${person.image}_neutral`];
@@ -102,9 +101,10 @@
     const main = el('main'); main.append(portrait(node));
     const wrap = el('div', 'dialogue-wrap'), box = el('section', 'dialogue-box');
     const label = el('div', 'speaker-line');
-    label.append(el('h1', 'speaker', cast[node.who]?.name || '숙종'), el('span', 'role', cast[node.who]?.role || ''));
+    label.append(el('h1', 'speaker', cast[node.who]?.name || '숙종'));
     const text = el('p', 'dialogue-text', node.text); text.id = 'current-text'; text.setAttribute('aria-live', 'polite');
-    box.append(label, text);
+    if (node.who !== 'narrator') box.append(label);
+    box.append(text);
     if (node.facts) { const facts = el('ul', 'facts'); node.facts.forEach(f => facts.append(el('li', '', f))); box.append(facts); }
     if (node.choices) {
       const list = el('div', 'choices');
@@ -118,29 +118,27 @@
         })));
       });
       box.append(list);
-      if (node.type === 'questions') box.append(el('p', 'question-note', '먼저 물을 것을 고르세요. 두 질문 모두 확인할 수 있습니다.'));
     } else {
       const foot = el('div', 'dialogue-footer');
-      foot.append(el('span', 'hint', state.sceneId === first ? '다음을 눌러 읽고, 선택지가 나오면 답을 고르세요.' : ''));
       const next = button('다음', () => act(() => go(node.next)), 'next'); next.id = 'next'; foot.append(next); box.append(foot);
     }
     wrap.append(box); main.append(wrap); shell.append(main);
   }
   function result(shell, node) {
     const e = endings[node.verdict], main = el('main', 'result'), inner = el('div', 'result-inner fade-in');
-    inner.append(el('p', 'small', '그날의 판단'), el('h1', '', e.title), el('p', 'verdict-text', e.label));
+    inner.append(el('h1', '', e.title), el('p', 'verdict-text', e.label));
     const reactions = el('div', 'reactions');
     e.reactions.forEach(([name, text]) => { const row = el('div', 'reaction'); row.append(el('strong', '', name), el('p', '', `“${text}”`)); reactions.append(row); });
     inner.append(reactions);
     const actions = el('div', 'result-actions');
     actions.append(button('실제 기록과 비교하기', showSource, 'primary'), button('처음부터 다시 하기', restart), button('제목으로', () => { view = 'title'; render(); }));
-    inner.append(actions, el('p', 'credits', '지시 뒤의 모든 일이 끝난 것은 아니다. 그날 왕의 문답은 여기서 끝났다.'));
+    inner.append(actions);
     main.append(inner); shell.append(main);
   }
   function render(focus = false) {
     const node = view === 'game' && state ? nodes[state.sceneId] : null;
     const bg = !node ? 'alley' : node.bg === 'route' ? (state.route === 'official' ? 'office' : 'shop') : node.bg;
-    const shell = el('div', 'shell'); shell.append(background(bg), header(node?.title));
+    const shell = el('div', 'shell'); shell.append(background(bg), header());
     if (!node) title(shell); else if (node.type === 'end') result(shell, node); else play(shell, node);
     app.replaceChildren(shell);
     if (focus) app.querySelector('main button')?.focus({ preventScroll: true });
