@@ -86,7 +86,7 @@
   }
   function portrait(node) {
     const stage = el('div', 'stage'); stage.setAttribute('aria-hidden', 'true');
-    const person = cast[node.who];
+    const person = cast[node.focus || node.who];
     if (!person?.image) return stage;
     const path = art[`${person.image}_${node.face || 'neutral'}`] || art[`${person.image}_neutral`];
     if (path) {
