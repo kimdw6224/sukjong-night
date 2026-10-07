@@ -1,5 +1,8 @@
 // 실제 존재하는 게임 이미지 목록. 서버 시작 시 갱신됩니다.
 window.NIGHT_ART = {
+  "bg_alley": "assets/backgrounds/bg_alley_night.png",
+  "bg_shop": "assets/backgrounds/bg_shop_day.png",
+  "bg_office": "assets/backgrounds/bg_office_day.png",
   "youth_neutral": "assets/characters/youth_neutral.png",
   "youth_tense": "assets/characters/youth_tense.png",
   "merchant_neutral": "assets/characters/merchant_neutral.png",
