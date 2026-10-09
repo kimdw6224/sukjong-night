@@ -70,22 +70,22 @@
   nodes.questions = { type: 'questions', title: '문 안과 문밖', bg: 'route', who: 'sukjong', thought: true,
     text: '청년이 직접 때렸는지, 폭행을 미리 알고 있었는지 확인해야 한다.',
     afterAnswer: {
-      awareness_2: '청년은 폭행을 예상하지 못했다고 한다. 직접 때렸는지는 상인에게 확인해 보자.',
-      assault_2: '상인은 때린 자가 따로 있었다고 했다. 청년이 폭행을 미리 알았는지도 물어보자.'
+      awareness_2: '다른 자들에게도 물어봐야겠군. 우선 주인장이 본 것부터 듣자.',
+      assault_2: '직접 때린 자는 따로 있었군. 청년은 그런 일이 벌어질 줄 알았을까.'
     },
     choices: [
-      { text: '안에서 폭행이 있을 줄도 알았느냐?', next: 'awareness_0', answer: 'awareness_2' },
-      { text: '직접 때린 것도 이 청년이었느냐?', next: 'assault_0', answer: 'assault_2' }
+      { text: '사람을 때릴 줄도 알고 있었나?', next: 'awareness_0', answer: 'awareness_2' },
+      { text: '주인장을 때린 자가 이 청년이오?', next: 'assault_0', answer: 'assault_2' }
     ] };
   scene('awareness', '문 안과 문밖', 'route', [
-    ['youth', '사람을 때릴 줄은 몰랐습니다. 돈과 천만 가져온다고 들었습니다.', 'tense'],
-    ['sukjong', '군관, 이 말은 다른 자들의 말과도 맞춰 보았느냐?', 'resolute'],
-    ['officer', '아직 못 맞춰 봤습니다. 지금은 이 청년의 말뿐입니다.']
+    ['youth', '몰랐습니다. 돈과 천만 가져온다고 했습니다.', 'tense'],
+    ['sukjong', '군관, 그자들에게도 물었나?', 'resolute'],
+    ['officer', '그 대목은 아직 못 물었습니다.']
   ], 'questions');
   scene('assault', '문 안과 문밖', 'route', [
-    ['merchant', '아닙니다. 저를 때린 자는 따로 있습니다. 이 청년은 문 앞에 있었고요.'],
-    ['youth', '그러니까 저는 손을 대지 않았습니다.', 'tense'],
-    ['merchant', '손만 안 대면 다냐? 네가 문을 막아서 나가지도 못했다.', 'tense']
+    ['merchant', '아닙니다. 저를 때린 놈은 따로 있습니다.'],
+    ['youth', '들으셨지요? 저는 손 안 댔습니다.', 'tense'],
+    ['narrator', '청년이 나를 보았다. 나는 상인에게 말을 계속하라고 손짓했다.', 'neutral', 'merchant']
   ], 'questions');
   scene('reveal', '관아 · 같은 사실 앞에서', 'office', [
     ['narrator', '군관이 우리를 관아로 안내했다. 방에 들어서자 그가 내게 허리를 굽혔다. “전하.” 청년이 걸음을 멈췄다.', 'tense', 'youth'],
@@ -166,13 +166,14 @@
     ['narrator', '청년이 입을 열었다가 다물었다. 나는 상인이 숨을 고를 때까지 기다렸다.', 'tense', 'youth']
   ]);
   after('awareness_0', [
-    ['narrator', '나는 잠시 기다렸다. 청년은 더 말하지 않았다. 군관에게 눈을 돌렸다.', 'neutral', 'officer']
+    ['sukjong', '누구한테 들었나?'],
+    ['youth', '안에 들어간 자들에게 직접 들었습니다.', 'tense']
   ]);
   after('assault_1', [
-    ['narrator', '상인이 청년 쪽으로 몸을 돌렸다.', 'tense', 'merchant']
+    ['merchant', '가만있어라. 내게 묻고 계시잖느냐.', 'tense']
   ]);
   after('assault_2', [
-    ['narrator', '청년은 입술을 다물었다. 상인도 더 몰아붙이지 않았다.', 'tense', 'youth']
+    ['merchant', '저 청년은 문 앞에 있었습니다. 제가 본 건 거기까지입니다.']
   ]);
   after('reveal_2', [
     ['narrator', '청년이 숙였던 고개를 들었다. 상인이 청년과 나를 번갈아 보더니 입을 열었다.', 'neutral', 'merchant']
