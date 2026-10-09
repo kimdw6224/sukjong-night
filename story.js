@@ -93,10 +93,10 @@
     ['sukjong', '아까 하던 말 때문에 그러는가? 괜찮네. 있는 대로 말하면 되네.']
   ], 'deliberate_0');
   scene('deliberate', '관아 · 같은 사실 앞에서', 'office', [
-    ['merchant', '저 청년이 때렸다는 말은 아닙니다. 그래도 문을 막은 일까지 없던 일이 되지는 않겠지요?'],
-    ['youth', '그러면 제가 때리지 않았다는 말도 함께 적어 주십시오.', 'tense'],
-    ['officer', '둘 다 적겠습니다. 다만 때릴 줄 알고 문을 지켰는지는 더 물어봐야 합니다.'],
-    ['narrator', '군관은 두 사람의 말을 적고 붓을 멈췄다. 세 사람 모두 내 답을 기다렸다.']
+    ['merchant', '제 말은 다 했습니다.'],
+    ['youth', '전하, 한 번만 봐주십시오.', 'tense'],
+    ['merchant', '저는 처분까지 듣고 가겠습니다.', 'tense'],
+    ['sukjong', '둘 다 잠시 기다리게.', 'resolute']
   ], 'verdict');
   const endings = {
     leniency: { id: 'E01', title: '사정을 살핀다는 것', label: '가담 책임은 묻되, 사정을 살펴 감경을 검토하라.', reactions: [
@@ -179,7 +179,7 @@
     ['narrator', '청년이 숙였던 고개를 들었다. 상인이 청년과 나를 번갈아 보더니 입을 열었다.', 'neutral', 'merchant']
   ]);
   after('deliberate_0', [
-    ['sukjong', '그럴 일은 없소. 저 청년도 문을 지킨 일은 인정했으니.']
+    ['narrator', '상인이 뒤로 물러서자 청년이 급히 내 앞으로 나왔다.', 'tense', 'youth']
   ]);
   after('E01_1', [
     ['narrator', '청년이 내 쪽으로 몸을 기울였다. 상인이 의자를 당겨 앉자, 막 꺼내려던 말이 멎었다.', 'tense', 'youth']
