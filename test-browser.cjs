@@ -92,7 +92,7 @@ async function walk(page, route, verdict, reverse = false) {
     assert.ok((await page.locator('#current-text').textContent()).includes('돌아가는 길'));
     await wait(page);
     await page.locator('#next').dblclick({ delay: 30 });
-    assert.equal(await page.locator('#current-text').textContent(), await page.evaluate(() => window.NIGHT_STORY.nodes.intro_2.text), '더블 클릭으로 대사를 건너뜀');
+    assert.equal(await page.locator('#current-text').textContent(), await page.evaluate(() => window.NIGHT_STORY.nodes.intro_1_reply_0.text), '더블 클릭으로 대사를 건너뜀');
     await page.screenshot({ path: path.join(out, 'mobile-dialogue.png'), fullPage: true });
     await walk(page, 1, 2, true);
     assert.equal(await page.locator('.result h1').textContent(), endings[2]);

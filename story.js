@@ -21,8 +21,8 @@
     officer: { name: '군관', role: '왕의 신분을 아는 수행자', image: 'officer' }
   };
   scene('intro', '첫째 날 · 밤 골목', 'alley', [
-    ['sukjong', '이 담은 아까도 본 것 같은데.'],
-    ['narrator', '궁으로 돌아가는 길이었다. 평상복 차림으로 나온 지 한참. 나는 걸음을 멈추고 뒤따라오던 군관을 돌아보았다.'],
+    ['narrator', '1684년 음력 2월 17일. 숙종은 평소와 다름없이 정사를 마쳤다. 날이 저물자 평상복으로 갈아입고, 군관 하나를 데리고 궁을 나섰다.', 'neutral', 'sukjong'],
+    ['narrator', '밤거리를 한 바퀴 돌고 궁으로 돌아가는 길이었다. 나는 같은 담 앞에서 걸음을 멈추고 군관을 돌아보았다.'],
     ['officer', '아까 갈림길에서 왼쪽으로 가셨어야 합니다.'],
     ['sukjong', '그걸 왜 이제 말하느냐.'],
     ['narrator', '나는 헛기침을 하고 앞을 보았다. 가게 처마 밑에 청년 하나가 서 있었다.', 'neutral', 'youth'],
@@ -135,6 +135,9 @@
     ['youth', '집에는 누가 좀 알려 주시면 안 됩니까?', 'tense']
   ], 'E03_done');
   for (const [verdict, e] of Object.entries(endings)) nodes[`${e.id}_done`] = { type: 'end', title: e.title, bg: 'office', verdict };
+  after('intro_1', [
+    ['sukjong', '이 담은 아까도 본 것 같은데.']
+  ]);
   after('intro_3', [
     ['officer', '아까도 말씀드렸습니다.']
   ]);
