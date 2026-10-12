@@ -9,22 +9,31 @@ const URL = process.env.GAME_URL || 'http://127.0.0.1:5177';
 const KEY = 'sukjong-night-v1';
 const report = [];
 const errors = [];
-const endings = ['사정을 살핀다는 것', '문 앞에 선 책임', '아직 묻지 못한 말'];
+const endings = ['관아 밖으로', '가담한 죄', '다시 가게 앞으로'];
 const out = path.join(__dirname, 'test-output');
 fs.mkdirSync(out, { recursive: true });
 const wait = page => page.waitForTimeout(245);
 async function step(page) { await wait(page); await page.locator('#next').click(); }
 async function walk(page, route, verdict, reverse = false) {
   let hops = 0;
+  const prompts = await page.evaluate(() => ({
+    route: window.NIGHT_STORY.nodes.route.choices[0].text,
+    verdict: window.NIGHT_STORY.nodes.verdict.choices[0].text,
+    returnToShop: window.NIGHT_STORY.nodes.E03_3.text
+  }));
   while (!await page.locator('.result').count()) {
     assert.ok(++hops < 100, '끝나지 않는 분기');
-    if (await page.locator('#next').count()) { await step(page); continue; }
+    if (await page.locator('#next').count()) {
+      if (await page.locator('#current-text').textContent() === prompts.returnToShop)
+        assert.equal(await page.locator('.scene-art.shop').count(), 1, '현장 재조사 장면의 배경');
+      await step(page); continue;
+    }
     const choices = page.locator('.choices button');
     const labels = await choices.allTextContents();
     assert.ok(labels.length > 0, '진행 버튼 없음');
     let index = 0;
-    if (labels[0].includes('왕으로서')) index = route;
-    else if (labels[0].includes('가담 책임')) index = verdict;
+    if (labels[0] === prompts.route) index = route;
+    else if (labels[0] === prompts.verdict) index = verdict;
     else if (reverse && labels.length === 2) index = 1;
     await wait(page); await choices.nth(index).click();
   }
@@ -57,6 +66,9 @@ async function walk(page, route, verdict, reverse = false) {
       assert.ok(saved.history.includes('awareness_2') && saved.history.includes('assault_2'), '필수 증언 누락');
       assert.equal(saved.history.includes('reveal_0'), route === 1, '신분 공개 장면 중복 또는 누락');
       assert.equal(saved.sceneId, `E0${verdict + 1}_done`);
+      assert.ok(saved.history.filter(id => /^E0[123]_/.test(id)).every(id => id.startsWith(`E0${verdict + 1}_`)), '다른 선택의 결말이 섞임');
+      assert.ok(saved.history.includes(verdict === 2 ? 'E03_5_reply_1' : `E0${verdict + 1}_5`), '선택 뒤 행동 장면 누락');
+      assert.equal(await page.locator(`.scene-art.${verdict === 2 ? 'shop' : 'office'}`).count(), 1, '결말 배경');
       const savedText = JSON.stringify(saved);
       await page.getByRole('button', { name: '실제 기록과 비교하기', exact: true }).click();
       assert.ok(await page.getByRole('dialog').isVisible());

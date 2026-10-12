@@ -44,8 +44,8 @@
   nodes.route = { type: 'choice', title: '누구로 물을 것인가', bg: 'shop', who: 'sukjong', thought: true,
     text: '청년은 나를 길을 묻던 나리로 여기는 눈치였다. 지금 신분을 밝힐까.',
     choices: [
-      { text: '왕으로서 조사 내용을 묻는다.', next: 'official_0', route: 'official' },
-      { text: '신분을 숨긴 채 청년에게 자세히 묻는다.', next: 'private_0', route: 'private' }
+      { text: '신분을 밝히고, 관아에서 조사한다.', next: 'official_0', route: 'official' },
+      { text: '신분을 숨기고, 가게 앞에서 직접 묻는다.', next: 'private_0', route: 'private' }
     ] };
   scene('official', '이튿날 · 공개 조사', 'office', [
     ['narrator', '내가 고개를 끄덕이자 군관이 허리를 굽혔다. “전하.” 그 한마디에 청년이 뒤로 반걸음 물러섰다.', 'tense', 'youth'],
@@ -99,42 +99,43 @@
     ['sukjong', '둘 다 잠시 기다리게.', 'resolute']
   ], 'verdict');
   const endings = {
-    leniency: { id: 'E01', title: '사정을 살핀다는 것', label: '가담 책임은 묻되, 사정을 살펴 감경을 검토하라.', reactions: [
-      ['청년', '예. 처음부터 말씀드리겠습니다.'], ['상인', '저도 듣겠습니다. 왜 하필 제 가게였는지.'] ] },
-    differentiate: { id: 'E02', title: '문 앞에 선 책임', label: '확인된 가담과 직접 폭행을 구분해 처분을 지시하라.', reactions: [
-      ['청년', '주인장, 아까 말씀해 주셔서…… 고맙습니다.'], ['상인', '없는 죄를 보탤 생각은 없다.'] ] },
-    defer: { id: 'E03', title: '아직 묻지 못한 말', label: '폭행을 미리 알았는지 더 조사한 뒤 처분하라.', reactions: [
-      ['청년', '그럼 오늘은 못 돌아갑니까?'], ['상인', '저는 가 봐도 되겠습니까? 가게를 비워 두고 와서요.'] ] }
+    leniency: { id: 'E01', title: '관아 밖으로', label: '오늘은 집으로 돌려보내고, 다시 부르면 오게 한다.', reactions: [
+      ['청년', '제가…… 집에 가도 됩니까?'], ['상인', '다시 안 나오면 어쩌시려고요?'] ] },
+    differentiate: { id: 'E02', title: '가담한 죄', label: '문을 지킨 죄부터 처벌한다.', reactions: [
+      ['청년', '집에 사람을 보내 주실 수 있습니까?'], ['상인', '저는 이제 가 봐도 되겠습니까?'] ] },
+    defer: { id: 'E03', title: '다시 가게 앞으로', bg: 'shop', label: '처분을 미루고, 가게로 돌아가 다시 조사한다.', reactions: [
+      ['청년', '지금 다시 가는 겁니까?'], ['상인', '그럼 제가 앞장서겠습니다.'] ] }
   };
   nodes.verdict = { type: 'verdict', title: '어떤 지시를 내릴 것인가', bg: 'office', who: 'sukjong', face: 'resolute', thought: true,
     text: '청년은 문을 지킨 일을 인정했다. 이제 어떻게 처리할지 정해야 한다.',
     facts: ['청년은 금품 강탈을 알고 문밖을 지켰다고 인정했다.', '상인은 직접 폭행한 자가 따로 있었다고 진술했다.', '청년이 폭행을 미리 알았는지, 다른 가담자들의 개별 행위는 아직 확인되지 않았다.', '상인은 돈과 천을 잃었다. 피해는 아직 회복되지 않았다.'],
     choices: Object.entries(endings).map(([verdict, e]) => ({ text: e.label, next: `${e.id}_0`, verdict })) };
-  scene('E01', '관아 · 사정을 살핀다는 것', 'office', [
-    ['sukjong', '군관, 이 청년의 사정을 더 들어 보아라. 벌을 줄일 만한 까닭이 있는지도 살피고.', 'resolute'],
+  scene('E01', '관아 밖으로', 'office', [
+    ['sukjong', '사는 곳을 확인하고 오늘은 돌려보내라. 다시 부르면 반드시 나와야 한다.', 'resolute'],
     ['youth', endings.leniency.reactions[0][1], 'tense'],
     ['merchant', endings.leniency.reactions[1][1], 'tense'],
-    ['youth', '주인장도 여기 계십니까?', 'tense'],
-    ['merchant', '그럼 내가 나가 있으랴?', 'tense'],
-    ['narrator', '청년이 내 눈치를 보았다. 나는 그대로 앉아 기다렸다. 청년은 상인을 향해 돌아앉더니 다시 입을 열었다.', 'tense', 'youth']
+    ['sukjong', '주소를 확인하고 사람을 보내게 하겠소. 물건 찾는 일도 계속할 것이오.'],
+    ['youth', '부르시면 오겠습니다.'],
+    ['narrator', '군관이 주소를 받아 적고 문을 열어 주었다. 청년이 나간 뒤에도 상인은 자리를 뜨지 않았다.', 'tense', 'merchant']
   ], 'E01_done');
-  scene('E02', '관아 · 문 앞에 선 책임', 'office', [
-    ['sukjong', '문을 지킨 일로 벌을 정하되, 직접 때린 자와는 구별하라.', 'resolute'],
+  scene('E02', '가담한 죄', 'office', [
+    ['sukjong', '문을 지킨 죄부터 다스려라. 직접 때린 자와 같은 벌을 주지는 말고.', 'resolute'],
     ['youth', endings.differentiate.reactions[0][1], 'tense'],
     ['merchant', endings.differentiate.reactions[1][1], 'tense'],
-    ['merchant', '이제 제 물건도 좀 찾아 주십시오. 팔아넘기기 전에요.'],
-    ['officer', '없어진 물건을 다시 짚어 주시겠습니까?'],
-    ['narrator', '상인이 손가락을 하나씩 접으며 천의 종류를 댔다. 청년은 그 옆에서 고개를 들지 않았다.', 'neutral', 'merchant']
+    ['officer', '자, 일어나라. 집에는 내가 전해 주마.'],
+    ['narrator', '청년이 천천히 일어났다. 군관이 그의 팔을 잡았다.', 'tense', 'youth'],
+    ['narrator', '청년은 군관에게 이끌려 안쪽 문으로 들어갔다. 상인은 반대쪽 마당으로 나갔다.']
   ], 'E02_done');
-  scene('E03', '관아 · 아직 묻지 못한 말', 'office', [
-    ['sukjong', '다른 자들의 말도 받아 보아라. 때릴 줄 알고 있었는지는 그 말들과 맞춰 본 뒤에 판단하겠다.', 'resolute'],
+  scene('E03', '다시 가게 앞으로', 'office', [
+    ['sukjong', '처분은 미루겠다. 가게로 돌아가서 어디에 있었는지 다시 짚어 보자.', 'resolute'],
     ['youth', endings.defer.reactions[0][1], 'tense'],
     ['merchant', endings.defer.reactions[1][1], 'tense'],
-    ['sukjong', '가 보시오. 더 물을 게 생기면 사람을 보내겠소.'],
-    ['narrator', '상인은 허리를 숙이고 나갔다. 청년은 문이 닫힐 때까지 그 뒤를 바라보았다.', 'tense', 'youth'],
-    ['youth', '집에는 누가 좀 알려 주시면 안 됩니까?', 'tense']
+    ['narrator', '가게 앞에 도착하자 상인이 문을 열었다. 청년은 문틀 옆에서 멈췄다.', 'tense', 'youth'],
+    ['youth', '저는 여기 있었습니다.', 'tense'],
+    ['merchant', '나는 이 안쪽에 있었고.']
   ], 'E03_done');
-  for (const [verdict, e] of Object.entries(endings)) nodes[`${e.id}_done`] = { type: 'end', title: e.title, bg: 'office', verdict };
+  for (const id of ['E03_3', 'E03_4', 'E03_5']) nodes[id].bg = 'shop';
+  for (const [verdict, e] of Object.entries(endings)) nodes[`${e.id}_done`] = { type: 'end', title: e.title, bg: e.bg || 'office', verdict };
   after('intro_1', [
     ['sukjong', '이 담은 아까도 본 것 같은데.']
   ]);
@@ -182,16 +183,17 @@
     ['narrator', '상인이 뒤로 물러서자 청년이 급히 내 앞으로 나왔다.', 'tense', 'youth']
   ]);
   after('E01_1', [
-    ['narrator', '청년이 내 쪽으로 몸을 기울였다. 상인이 의자를 당겨 앉자, 막 꺼내려던 말이 멎었다.', 'tense', 'youth']
+    ['officer', '사는 곳부터 대라. 부르면 바로 나와야 한다.']
   ]);
   after('E02_2', [
-    ['narrator', '청년이 고개를 숙였다. 상인은 군관 쪽으로 돌아섰다.', 'neutral', 'merchant']
+    ['sukjong', '주인장은 돌아가시오. 물건은 계속 찾게 하겠소.']
   ]);
   after('E03_1', [
-    ['officer', '아직은 안 된다.']
+    ['sukjong', '그래. 자네가 서 있던 자리를 보여 주게.']
   ]);
   after('E03_5', [
-    ['officer', '어디 사는지 말해라. 사람을 보내마.']
+    ['sukjong', '군관은 주인장과 안으로 들어가 보아라.'],
+    ['narrator', '군관과 상인이 가게 안으로 들어갔다. 나는 청년 옆에 서서 안이 얼마나 보이는지 살폈다.']
   ]);
   window.NIGHT_STORY = { nodes, cast, endings, first: 'intro_0' };
 })();
