@@ -7,3 +7,21 @@
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;scroll-behavior:auto!important}}
 
 .topbar .top-actions{margin-left:auto}
+
+/* 두 인물의 자리를 고정해 화자가 바뀌어도 얼굴이 이동하지 않는다. */
+.stage.duet{display:grid;grid-template-columns:repeat(2,minmax(0,420px));align-items:stretch;justify-content:center;gap:clamp(12px,3vw,40px);padding-inline:clamp(16px,5vw,72px)}
+.portrait-slot{position:relative;display:flex;align-items:flex-end;justify-content:center;min-width:0;height:100%;overflow:hidden;filter:brightness(.86);transition:filter .16s ease-out}
+.portrait-slot.is-speaking{filter:brightness(1.03)}
+.portrait-slot .portrait{height:175%;top:10px}
+
+@media(max-width:600px){
+  /* 조작 버튼은 별도 줄에 두고 소리 버튼이 추가되어도 줄바꿈을 허용한다. */
+  .topbar{height:auto;min-height:88px;flex-wrap:wrap;gap:4px 12px;padding:8px 18px}
+  .topbar .top-actions{flex:1 1 100%;margin-left:0;flex-wrap:wrap;justify-content:flex-end;gap:8px;min-width:0}
+  .top-actions button{min-width:44px;min-height:46px;padding-inline:10px}
+  .title-layout,.result{min-height:calc(100svh - 88px)}
+  .stage.duet{gap:12px;padding-inline:12px}
+  .portrait-slot .portrait{height:190%;top:8px}
+  .duet .stage-label{left:6px;font-size:12px}
+}
+@media(prefers-reduced-motion:reduce){.portrait-slot{transition:none}}

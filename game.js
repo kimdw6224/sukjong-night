@@ -3,6 +3,7 @@
   const { nodes, cast, endings, first } = window.NIGHT_STORY;
   const art = window.NIGHT_ART || {};
   const KEY = 'sukjong-night-v1';
+  const SOUND_KEY = `${KEY}-sound`;
   const app = document.querySelector('#app');
   const dialog = document.querySelector('#dialog');
   const dialogBody = document.querySelector('#dialog-body');
@@ -10,6 +11,51 @@
   const closeButton = document.querySelector('#dialog-close');
   let view = 'title', lockUntil = 0, restoreFocus = null, confirmAction = null;
   let state = null, noticeTimer, storageWritable = true;
+  let soundEnabled = true, soundContext, soundOutput, noiseBuffer;
+  try { soundEnabled = localStorage.getItem(SOUND_KEY) !== 'off'; } catch {}
+  // 짧은 발소리와 나무 문소리만 합성해 외부 음원 없이 장면에 붙입니다.
+  function playCue(cue) {
+    if (!soundEnabled || !['steps', 'door'].includes(cue) || !window.AudioContext) return;
+    try {
+      if (!soundContext) {
+        soundContext = new AudioContext();
+        soundOutput = soundContext.createGain(); soundOutput.gain.value = 0.24;
+        soundOutput.connect(soundContext.destination);
+        noiseBuffer = soundContext.createBuffer(1, Math.ceil(soundContext.sampleRate * 0.5), soundContext.sampleRate);
+        const samples = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < samples.length; i++) samples[i] = Math.random() * 2 - 1;
+      }
+      if (soundContext.state === 'suspended') soundContext.resume().catch(() => {});
+      const now = soundContext.currentTime;
+      function tap(offset, duration, frequency, volume) {
+        const source = soundContext.createBufferSource(), filter = soundContext.createBiquadFilter(), gain = soundContext.createGain();
+        source.buffer = noiseBuffer; filter.type = 'lowpass'; filter.frequency.value = frequency;
+        const at = now + offset;
+        gain.gain.setValueAtTime(0, at); gain.gain.linearRampToValueAtTime(volume, at + 0.009);
+        gain.gain.exponentialRampToValueAtTime(0.001, at + duration);
+        source.connect(filter); filter.connect(gain); gain.connect(soundOutput);
+        source.start(at); source.stop(at + duration);
+        source.onended = () => { source.disconnect(); filter.disconnect(); gain.disconnect(); };
+      }
+      if (cue === 'steps') {
+        [0, 0.23, 0.48].forEach((offset, i) => tap(offset, 0.12, 420 - i * 45, 0.8));
+      } else {
+        tap(0, 0.15, 620, 0.55); tap(0.4, 0.12, 280, 0.75);
+        const creak = soundContext.createOscillator(), gain = soundContext.createGain();
+        creak.type = 'triangle'; creak.frequency.setValueAtTime(115, now);
+        creak.frequency.exponentialRampToValueAtTime(68, now + 0.38);
+        gain.gain.setValueAtTime(0, now); gain.gain.linearRampToValueAtTime(0.065, now + 0.05);
+        gain.gain.linearRampToValueAtTime(0, now + 0.42);
+        creak.connect(gain); gain.connect(soundOutput); creak.start(now); creak.stop(now + 0.42);
+        creak.onended = () => { creak.disconnect(); gain.disconnect(); };
+      }
+    } catch {
+      soundEnabled = false;
+      const toggle = document.querySelector('#sound-toggle');
+      if (toggle) toggle.textContent = '소리 켜기';
+      notify('효과음을 재생할 수 없습니다. 이야기는 계속 진행할 수 있습니다.');
+    }
+  }
   function notify(text) {
     const el = document.querySelector('#notice'); el.textContent = text; el.hidden = false;
     clearTimeout(noticeTimer); noticeTimer = setTimeout(() => { el.hidden = true; }, 5000);
@@ -23,7 +69,7 @@
     const raw = localStorage.getItem(KEY);
     if (raw) {
       const saved = JSON.parse(raw);
-      if (saved.version !== 1 || !nodes[saved.sceneId] || !Array.isArray(saved.history) || saved.history.length > 250 || !saved.history.every(validHistoryId)
+      if (saved.version !== 1 || !nodes[saved.sceneId] || nodes[saved.sceneId].type === 'branch' || !Array.isArray(saved.history) || saved.history.length > 250 || !saved.history.every(validHistoryId)
         || ![null, 'official', 'private'].includes(saved.route) || ![null, ...Object.keys(endings)].includes(saved.verdict)
         || (nodes[saved.sceneId].type === 'end' && nodes[saved.sceneId].verdict !== saved.verdict)) throw new Error('invalid save');
       state = saved;
@@ -41,9 +87,11 @@
   function availableQuestions() { return nodes.questions.choices.filter(c => !state.history.includes(c.answer)); }
   function go(id) {
     if (id === 'questions' && !availableQuestions().length) id = state.route === 'private' ? 'reveal_0' : 'deliberate_0';
+    if (nodes[id].type === 'branch') id = nodes[id].paths.find(path => state.history.includes(path.seen))?.next || nodes[id].next;
     state.sceneId = id;
     if (nodes[id].type === 'line') record(id);
     save(); view = 'game'; render(true);
+    playCue(nodes[id].cue);
   }
   function act(fn) { if (performance.now() < lockUntil || dialog.open) return; lockUntil = performance.now() + 230; fn(); }
   function start() { state = { version: 1, sceneId: first, route: null, verdict: null, history: [] }; go(first); }
@@ -66,6 +114,17 @@
     const h = el('header', 'topbar');
     if (view !== 'title') h.append(el('span', 'brand', '숙종의 밤'));
     const actions = el('nav', 'top-actions'); actions.setAttribute('aria-label', '게임 메뉴');
+    const sound = button(soundEnabled ? '소리 끄기' : '소리 켜기', () => {
+      soundEnabled = !soundEnabled;
+      if (soundOutput) {
+        soundOutput.gain.cancelScheduledValues(soundContext.currentTime);
+        soundOutput.gain.setTargetAtTime(soundEnabled ? 0.24 : 0, soundContext.currentTime, 0.01);
+      }
+      try { localStorage.setItem(SOUND_KEY, soundEnabled ? 'on' : 'off'); } catch {}
+      sound.textContent = soundEnabled ? '소리 끄기' : '소리 켜기';
+    }, 'quiet');
+    sound.id = 'sound-toggle'; sound.disabled = !window.AudioContext;
+    actions.append(sound);
     if (state?.history.length) actions.append(button('대화 기록', showHistory, 'quiet'));
     if (view !== 'title') actions.append(button('제목으로', () => { view = 'title'; render(); }, 'quiet'));
     h.append(actions); return h;
@@ -86,14 +145,21 @@
   }
   function portrait(node) {
     const stage = el('div', 'stage'); stage.setAttribute('aria-hidden', 'true');
-    const person = cast[node.focus || node.who];
-    if (!person?.image) return stage;
-    const path = art[`${person.image}_${node.face || 'neutral'}`] || art[`${person.image}_neutral`];
-    if (path) {
-      const image = el('img', 'portrait'); image.alt = ''; image.src = path;
-      image.addEventListener('error', () => { image.replaceWith(silhouette(person.image)); }, { once: true });
-      stage.append(image);
-    } else stage.append(silhouette(person.image));
+    const active = node.focus || node.who;
+    if (node.pair) stage.classList.add('duet');
+    for (const id of node.pair || [active]) {
+      const person = cast[id];
+      if (!person?.image) continue;
+      const slot = node.pair ? el('div', `portrait-slot${id === active ? ' is-speaking' : ''}`) : stage;
+      if (node.pair) { slot.dataset.character = id; stage.append(slot); }
+      const face = id === active ? node.face || 'neutral' : 'neutral';
+      const path = art[`${person.image}_${face}`] || art[`${person.image}_neutral`];
+      if (path) {
+        const image = el('img', 'portrait'); image.alt = ''; image.src = path;
+        image.addEventListener('error', () => { image.replaceWith(silhouette(person.image)); }, { once: true });
+        slot.append(image);
+      } else slot.append(silhouette(person.image));
+    }
     return stage;
   }
   function silhouette(person) { const shape = el('div', `shadow-person ${person}`); shape.append(el('div', 'hat')); return shape; }
