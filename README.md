@@ -30,7 +30,7 @@ node build.mjs
 
 ## 이미지
 
-밤 골목·포목상·관아 배경 3장과 인물 4명의 표정 2종씩, 총 11장의 이미지를 포함합니다.
+밤 골목·포목상·관아 배경 3장과 인물 8명의 표정 2종씩, 총 19장의 이미지를 포함합니다. 쌀가게 주인·손님·공방 주인·일꾼은 각각 전용 이미지를 사용합니다.
 
 이미지는 아래 경로에 넣습니다. 서버 시작과 배포 빌드 때 실제 존재하는 파일을 `art.js`에 연결합니다.
 
@@ -46,6 +46,14 @@ assets/characters/officer_neutral.png
 assets/characters/officer_tense.png
 assets/characters/sukjong_neutral.png
 assets/characters/sukjong_resolute.png
+assets/characters/rice_seller_neutral.png
+assets/characters/rice_seller_tense.png
+assets/characters/rice_buyer_neutral.png
+assets/characters/rice_buyer_tense.png
+assets/characters/wages_owner_neutral.png
+assets/characters/wages_owner_tense.png
+assets/characters/wages_worker_neutral.png
+assets/characters/wages_worker_tense.png
 ```
 
 ## 코드

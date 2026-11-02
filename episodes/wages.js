@@ -1,8 +1,8 @@
 /* 이 사건과 인물은 시대를 배경으로 만든 창작입니다. */
 (() => {
   const { nodes, cast, endings, scene } = window.NIGHT_STORY;
-  cast.wagesOwner = { name: '공방 주인', image: 'merchant' };
-  cast.wagesWorker = { name: '일꾼', image: 'youth' };
+  cast.wagesOwner = { name: '공방 주인', image: 'wages_owner' };
+  cast.wagesWorker = { name: '일꾼', image: 'wages_worker' };
   const source = { title: '이야기의 배경', text: '품삯과 깨진 기물을 둘러싼 사건, 인물과 처분은 조선 시대를 배경으로 만든 창작입니다.' };
   const definitions = {
     wages_pay: { id: 'wages_pay', title: '먼저 건넨 품삯', label: '이견 없는 품삯부터 지급하게 한다.', reactions: [['일꾼', '그 돈이라도 오늘 받을 수 있습니까?'], ['공방 주인', '나머지는 그릇값을 살핀 뒤에 정해 주십시오.']] },

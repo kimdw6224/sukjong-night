@@ -10,5 +10,13 @@ window.NIGHT_ART = {
   "officer_neutral": "assets/characters/officer_neutral.png",
   "officer_tense": "assets/characters/officer_tense.png",
   "sukjong_neutral": "assets/characters/sukjong_neutral.png",
-  "sukjong_resolute": "assets/characters/sukjong_resolute.png"
+  "sukjong_resolute": "assets/characters/sukjong_resolute.png",
+  "rice_seller_neutral": "assets/characters/rice_seller_neutral.png",
+  "rice_seller_tense": "assets/characters/rice_seller_tense.png",
+  "rice_buyer_neutral": "assets/characters/rice_buyer_neutral.png",
+  "rice_buyer_tense": "assets/characters/rice_buyer_tense.png",
+  "wages_owner_neutral": "assets/characters/wages_owner_neutral.png",
+  "wages_owner_tense": "assets/characters/wages_owner_tense.png",
+  "wages_worker_neutral": "assets/characters/wages_worker_neutral.png",
+  "wages_worker_tense": "assets/characters/wages_worker_tense.png"
 };

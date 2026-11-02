@@ -163,8 +163,27 @@ async function walk(page, route, verdict, reverse = false, inspection = 0) {
       report.push({case:`${episode.prefix} 관찰 ${inspection+1} × 결말 ${verdict+1} / 재개·배경 설명·다른 곳 이동`,result:'PASS'});
       await ctx.close();
     }))));
+    // 새 사건 네 인물의 기본·긴장 이미지가 실제 대사에서 연결되는지 확인.
+    const portraitActors = {riceSeller:'rice_seller',riceBuyer:'rice_buyer',wagesOwner:'wages_owner',wagesWorker:'wages_worker'};
+    for (const [width,height] of [[1366,900],[360,740]]) {
+      const portraitCtx=await context({viewport:{width,height}}), p=await portraitCtx.newPage(); await p.goto(URL);
+      for (const [actor,image] of Object.entries(portraitActors)) for (const face of ['neutral','tense']) {
+        const id=await p.evaluate(({actor,face})=>Object.entries(window.NIGHT_STORY.nodes).find(([,n])=>n.type==='line'&&n.who===actor&&(n.face||'neutral')===face)?.[0],{actor,face});
+        assert.ok(id,`${actor} ${face} 사용 장면 없음`);
+        await p.evaluate(({key,id})=>localStorage.setItem(key,JSON.stringify({version:1,sceneId:id,route:null,verdict:null,history:[id]})),{key:KEY,id});
+        await p.reload(); await p.getByRole('button',{name:'이어하기',exact:true}).click();
+        const portrait=p.locator(`.portrait-slot[data-character="${actor}"] .portrait`);
+        await portrait.waitFor(); await portrait.evaluate(img=>img.decode());
+        assert.ok((await portrait.getAttribute('src')).endsWith(`${image}_${face}.png`),'다른 인물 이미지 또는 기본 표정으로 대체됨');
+        assert.equal(await portrait.evaluate(img=>img.naturalWidth),1024);
+        assert.equal(await portrait.evaluate(img=>img.naturalHeight),1536);
+        assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'인물 화면 가로 넘침');
+        await p.screenshot({path:path.join(out,`character-${image}-${face}-${width}.png`),fullPage:true});
+      }
+      report.push({case:`${width}px 새 인물 4명 × 표정 2종 실제 이미지 연결`,result:'PASS'}); await portraitCtx.close();
     }
-    if (process.argv.includes('--episodes-only')) { console.log(JSON.stringify(report, null, 2)); return; }
+    }
+    if (process.argv.includes('--episodes-only')) { assert.deepEqual(errors,[],'브라우저 오류'); console.log(JSON.stringify(report, null, 2)); return; }
     // 모바일에서 전체 플레이, 키보드 진행, 저장 차단 및 중복 입력.
     const ctx = await context({ viewport: { width: 360, height: 740 }, isMobile: true, hasTouch: true });
     await ctx.addInitScript(() => Object.defineProperty(window, 'localStorage', { get() { throw new DOMException('Blocked', 'SecurityError'); } }));

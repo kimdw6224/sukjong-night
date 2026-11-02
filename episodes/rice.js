@@ -1,14 +1,14 @@
 /* 장터 사건과 등장인물은 게임을 위해 지어낸 이야기입니다. */
 (() => {
   const { nodes, cast, endings, scene } = window.NIGHT_STORY;
-  cast.riceSeller = { name: '쌀가게 주인', image: 'merchant' };
-  cast.riceBuyer = { name: '손님', image: 'youth' };
+  cast.riceSeller = { name: '쌀가게 주인', image: 'rice_seller' };
+  cast.riceBuyer = { name: '손님', image: 'rice_buyer' };
 
   scene('rice_intro', '장터', 'alley', [
     ['narrator', '장터 어귀에서 쌀자루를 든 사내와 가게 주인이 실랑이를 벌이고 있었다.', 'neutral', 'riceBuyer'],
     ['riceBuyer', '어제 분명히 한 말을 샀습니다. 집에 가서 되니 한 되가 모자라지 않습니까?'],
     ['riceSeller', '자루 입구를 제대로 묶지도 않고 가셨잖소. 오는 길에 흘렸겠지.'],
-    ['riceBuyer', '흘렸으면 길바닥에서 쓸어 오기라도 했겠지요.'],
+    ['riceBuyer', '흘렸으면 길바닥에서 쓸어 오기라도 했겠지요.', 'tense'],
     ['sukjong', '한 되가 모자라다니. 두 분이 같은 그릇으로 재셨소?'],
     ['officer', '가게에서 쓰는 됫박부터 보시지요.'],
     ['riceSeller', '보실 거면 들어오십시오. 됫박도 그대로 있습니다.'],

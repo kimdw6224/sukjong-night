@@ -9,7 +9,7 @@ const candidates = {
   bg_shop: 'assets/backgrounds/bg_shop_day.png',
   bg_office: 'assets/backgrounds/bg_office_day.png'
 };
-for (const person of ['youth', 'merchant', 'officer', 'sukjong']) {
+for (const person of ['youth', 'merchant', 'officer', 'sukjong', 'rice_seller', 'rice_buyer', 'wages_owner', 'wages_worker']) {
   for (const face of ['neutral', person === 'sukjong' ? 'resolute' : 'tense']) candidates[`${person}_${face}`] = `assets/characters/${person}_${face}.png`;
 }
 const images = {};
