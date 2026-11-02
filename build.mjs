@@ -10,6 +10,7 @@ await mkdir(output, { recursive: true });
 for (const name of ['index.html', 'style.css', 'game.js', 'story.js', 'art.js']) {
   await copyFile(path.join(root, name), path.join(output, name));
 }
+await cp(path.join(root, 'episodes'), path.join(output, 'episodes'), { recursive: true });
 const assets = path.join(root, 'assets');
 let hasAssets = false;
 try { await access(assets); hasAssets = true; } catch {}

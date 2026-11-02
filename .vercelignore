@@ -9,3 +9,5 @@
 !vercel.json
 !assets
 !assets/**
+!episodes
+!episodes/**

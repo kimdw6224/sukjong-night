@@ -19,7 +19,7 @@ for (const [key, file] of Object.entries(candidates)) {
 await writeFile(path.join(root, 'art.js'), `// 실제 존재하는 게임 이미지 목록. 서버 시작 시 갱신됩니다.\nwindow.NIGHT_ART = ${JSON.stringify(images, null, 2)};\n`, 'utf8');
 if (process.argv.includes('--art-only')) { console.log(`이미지 ${Object.keys(images).length}개 연결 완료`); process.exit(0); }
 const mime = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.png': 'image/png', '.webp': 'image/webp', '.svg': 'image/svg+xml' };
-const allowed = new Set(['index.html', 'style.css', 'story.js', 'game.js', 'art.js']);
+const allowed = new Set(['index.html', 'style.css', 'story.js', 'game.js', 'art.js', 'episodes/rice.js', 'episodes/wages.js']);
 const server = http.createServer(async (req, res) => {
   try {
     const name = decodeURIComponent(new URL(req.url, 'http://localhost').pathname).replace(/^\/+/, '') || 'index.html';

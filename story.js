@@ -20,8 +20,18 @@
     merchant: { name: '상인', role: '포목상의 주인', image: 'merchant' },
     officer: { name: '군관', role: '왕의 신분을 아는 수행자', image: 'officer' }
   };
+  scene('outing', '궁 밖으로', 'alley', [
+    ['narrator', '1684년 음력 2월 17일. 숙종은 평소와 다름없이 정사를 마쳤다. 날이 저물자 평상복으로 갈아입고, 군관 하나를 데리고 궁을 나섰다.', 'neutral', 'sukjong']
+  ], 'destination');
+  nodes.destination = { type: 'choice', title: '궁 밖으로', bg: 'alley', who: 'sukjong', thought: true,
+    text: '오늘은 어디로 가볼까?', pair: ['sukjong', 'officer'],
+    choices: [
+      { text: '포목상 골목으로 가 본다.', next: 'intro_0' },
+      { text: '장터 쌀가게로 가 본다.', next: 'rice_intro_0' },
+      { text: '공방이 모인 골목으로 가 본다.', next: 'wages_intro_0' }
+    ] };
   scene('intro', '첫째 날 · 밤 골목', 'alley', [
-    ['narrator', '1684년 음력 2월 17일. 숙종은 평소와 다름없이 정사를 마쳤다. 날이 저물자 평상복으로 갈아입고, 군관 하나를 데리고 궁을 나섰다.', 'neutral', 'sukjong'],
+    ['sukjong', '포목상 골목부터 가 보자. 이번엔 길을 좀 기억해 두어야겠구나.'],
     ['narrator', '밤거리를 한 바퀴 돌고 궁으로 돌아가는 길이었다. 나는 같은 담 앞에서 걸음을 멈추고 군관을 돌아보았다.'],
     ['officer', '아까 갈림길에서 왼쪽으로 가셨어야 합니다.'],
     ['sukjong', '그걸 왜 이제 말하느냐.'],
@@ -264,6 +274,10 @@
     ['sukjong', '얼마나 받기로 했느냐?'],
     ['youth', '얼마인지는 정해 주지 않았습니다.', 'tense']
   ]);
+  after('counter_look_2', [
+    ['narrator', '서랍 옆에는 동문 공방에서 온 꾸러미표가 남아 있었다. 상인이 그 종이를 집어 들었다.', 'neutral', 'merchant'],
+    ['merchant', '천을 넣을 궤짝을 맡겨 둔 곳입니다. 궤짝은 다 됐다는데, 치를 돈까지 없어졌군요.']
+  ]);
   after('official_0', [
     ['youth', '전하를 몰라뵈었습니다.', 'tense'],
     ['sukjong', '됐네. 두 사람 다 안으로 들지.'],
@@ -318,5 +332,5 @@
   pair(['sukjong', 'merchant'], 'meet_7_reply');
   for (const id of ['meet_0_reply_2', 'doorway_look_1', 'E02_epilogue_0']) nodes[id].cue = 'steps';
   for (const id of ['counter_look_0', 'official_0_reply_2', 'reveal_0', 'E01_5', 'E03_3']) nodes[id].cue = 'door';
-  window.NIGHT_STORY = { nodes, cast, endings, first: 'intro_0' };
+  window.NIGHT_STORY = { nodes, cast, endings, scene, first: 'outing_0' };
 })();

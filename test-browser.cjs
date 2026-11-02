@@ -14,6 +14,14 @@ const out = path.join(__dirname, 'test-output');
 fs.mkdirSync(out, { recursive: true });
 const wait = page => page.waitForTimeout(245);
 async function step(page) { await wait(page); await page.locator('#next').click(); }
+async function selectDestination(page, index) {
+  for (let hops = 0; await page.locator('#next').count(); hops++) {
+    assert.ok(hops < 4, '목적지 선택으로 연결되지 않음'); await step(page);
+  }
+  assert.equal(await page.locator('#current-text').textContent(), '오늘은 어디로 가볼까?');
+  assert.equal(await page.locator('.choices button').count(), 3);
+  await wait(page); await page.locator('.choices button').nth(index).click();
+}
 async function walk(page, route, verdict, reverse = false, inspection = 0) {
   let hops = 0;
   const prompts = await page.evaluate(() => ({
@@ -59,9 +67,12 @@ async function walk(page, route, verdict, reverse = false, inspection = 0) {
       return ctx;
     }
     const routeFilter = process.argv.find(a => a.startsWith('--route='))?.split('=')[1];
+    if (!process.argv.includes('--remaining')) {
+    if (!process.argv.includes('--episodes-only')) {
     await Promise.all([0, 1].flatMap(route => [0, 1, 2].filter(verdict => !routeFilter || routeFilter === `${route}:${verdict}`).flatMap(verdict => [0, 1].map(async inspection => {
       const ctx = await context(); const page = await ctx.newPage();
       await page.goto(URL); await page.getByRole('button', { name: '시작하기', exact: true }).click();
+      await selectDestination(page, 0);
       // 새로고침이 대화 위치와 기록을 유지하는지 실제 진행 중 확인.
       await step(page); await step(page);
       const before = await page.evaluate(k => localStorage.getItem(k), KEY);
@@ -100,7 +111,7 @@ async function walk(page, route, verdict, reverse = false, inspection = 0) {
       assert.equal(await page.locator('.result h1').textContent(), endings[verdict]);
       await page.getByRole('button', { name: '대화 기록', exact: true }).click();
       assert.ok((await page.locator('.history-entry').count()) > 25);
-      assert.equal(await page.locator('.history-choice').count(), 5);
+      assert.equal(await page.locator('.history-choice').count(), 6);
       await page.keyboard.press('Escape');
       await page.getByRole('button', { name: '처음부터 다시 하기', exact: true }).click();
       await page.keyboard.press('Escape');
@@ -109,6 +120,51 @@ async function walk(page, route, verdict, reverse = false, inspection = 0) {
       report.push({ case: `경로 ${route + 1} × 관찰 ${inspection + 1} × 결말 ${verdict + 1} / 새로고침·기록·초기화 취소`, result: 'PASS' });
       await ctx.close();
     }))));
+    }
+    // 새 두 사건은 각각 두 조사 방식과 세 결말을 처음 목적지 선택부터 플레이.
+    const episodes = [
+      {index:1,prefix:'rice',inspect:'rice_inspect',decision:'rice_decide',outcomes:['rice_refund','rice_report','rice_check']},
+      {index:2,prefix:'wages',inspect:'wages_inspect',decision:'wages_verdict',outcomes:['wages_pay','wages_inquiry','wages_settle']}
+    ];
+    await Promise.all(episodes.flatMap(episode => [0,1].flatMap(inspection => episode.outcomes.map(async (outcome, verdict) => {
+      const ctx = await context(); const page = await ctx.newPage(); await page.goto(URL);
+      await page.getByRole('button',{name:'시작하기',exact:true}).click(); await selectDestination(page,episode.index);
+      const prompts = await page.evaluate(({inspect,decision}) => ({
+        inspect:window.NIGHT_STORY.nodes[inspect].text,decision:window.NIGHT_STORY.nodes[decision].text
+      }),episode);
+      let hops=0;
+      while (!await page.locator('.result').count()) {
+        assert.ok(++hops < 100,'새 사건의 진행 불능');
+        if (await page.locator('#next').count()) { await step(page); continue; }
+        const text = await page.locator('#current-text').textContent();
+        assert.ok(text === prompts.inspect || text === prompts.decision,'예상하지 못한 사건 간 이동');
+        await wait(page); await page.locator('.choices button').nth(text === prompts.inspect ? inspection : verdict).click();
+        if (text === prompts.inspect) {
+          const before = await page.evaluate(key=>localStorage.getItem(key),KEY);
+          await page.reload(); await page.getByRole('button',{name:'이어하기',exact:true}).click();
+          assert.equal(await page.evaluate(key=>localStorage.getItem(key),KEY),before,'새 사건 조사 선택 복구');
+        }
+      }
+      const saved = await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),KEY);
+      assert.equal(saved.verdict,outcome); assert.equal(saved.sceneId,`${outcome}_done`);
+      assert.ok(saved.history.includes(`${episode.inspect}#${inspection}`));
+      assert.ok(saved.history.every(id => id.startsWith(episode.prefix+'_') || id === 'outing_0' || id.startsWith('destination#')),'다른 사건 대사 혼입');
+      const title=await page.locator('.result h1').textContent();
+      await page.reload(); assert.equal(await page.locator('.result h1').textContent(),title);
+      await page.getByRole('button',{name:'이야기 배경 보기',exact:true}).click();
+      assert.match(await page.locator('dialog').textContent(),/창작|지어낸/);
+      assert.equal(await page.locator('dialog a').count(),0,'새 창작 사건에 검계 실록을 근거로 표시함');
+      await page.keyboard.press('Escape');
+      await page.getByRole('button',{name:'다른 곳으로 가기',exact:true}).click();
+      await selectDestination(page,0);
+      const next=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),KEY);
+      assert.equal(next.sceneId,'intro_0'); assert.equal(next.verdict,null); assert.equal(next.route,null);
+      assert.ok(!next.history.some(id=>id.startsWith(episode.prefix+'_')),'다른 장소에 지난 사건 상태가 남음');
+      report.push({case:`${episode.prefix} 관찰 ${inspection+1} × 결말 ${verdict+1} / 재개·배경 설명·다른 곳 이동`,result:'PASS'});
+      await ctx.close();
+    }))));
+    }
+    if (process.argv.includes('--episodes-only')) { console.log(JSON.stringify(report, null, 2)); return; }
     // 모바일에서 전체 플레이, 키보드 진행, 저장 차단 및 중복 입력.
     const ctx = await context({ viewport: { width: 360, height: 740 }, isMobile: true, hasTouch: true });
     await ctx.addInitScript(() => Object.defineProperty(window, 'localStorage', { get() { throw new DOMException('Blocked', 'SecurityError'); } }));
@@ -116,6 +172,8 @@ async function walk(page, route, verdict, reverse = false, inspection = 0) {
     await page.screenshot({ path: path.join(out, 'mobile-title.png'), fullPage: true });
     await page.getByRole('button', { name: '시작하기', exact: true }).click();
     assert.ok((await page.locator('#notice').textContent()).includes('저장되지 않습니다'));
+    await selectDestination(page,0);
+    await wait(page);
     await page.locator('#next').focus(); await page.keyboard.press('Enter');
     assert.ok((await page.locator('#current-text').textContent()).includes('돌아가는 길'));
     await wait(page);
@@ -139,7 +197,7 @@ async function walk(page, route, verdict, reverse = false, inspection = 0) {
     await p.getByRole('button', { name: '제목으로', exact: true }).click();
     await p.getByRole('button', { name: '처음부터', exact: true }).click();
     await p.getByRole('button', { name: '처음부터 시작', exact: true }).click();
-    assert.equal(await p.evaluate(k => JSON.parse(localStorage.getItem(k)).sceneId, KEY), 'intro_0');
+    assert.equal(await p.evaluate(k => JSON.parse(localStorage.getItem(k)).sceneId, KEY), 'outing_0');
     assert.equal(await p.evaluate(() => localStorage.getItem('unrelated-save')), 'keep');
     report.push({ case: '손상된 저장 복구 / 재시작 / 다른 저장 보존', result: 'PASS' });
     // 직접 조사 선택이 없던 이전 저장도 새 분기에서 멈추지 않음.
@@ -241,7 +299,7 @@ async function walk(page, route, verdict, reverse = false, inspection = 0) {
     assert.deepEqual(errors, [], '브라우저 오류');
     report.push({ case: '전체 브라우저 콘솔·런타임 오류 0건', result: 'PASS' });
   } finally {
-    fs.writeFileSync(path.join(out, process.argv.includes('--route=0:0') ? 'results-focused.json' : 'results.json'), JSON.stringify({ results: report, errors }, null, 2));
+    fs.writeFileSync(path.join(out, process.argv.includes('--episodes-only') ? 'results-episodes.json' : process.argv.includes('--remaining') ? 'results-remaining.json' : process.argv.includes('--route=0:0') ? 'results-focused.json' : 'results.json'), JSON.stringify({ results: report, errors }, null, 2));
     await browser.close();
   }
   console.log(JSON.stringify(report, null, 2));

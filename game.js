@@ -94,7 +94,8 @@
     playCue(nodes[id].cue);
   }
   function act(fn) { if (performance.now() < lockUntil || dialog.open) return; lockUntil = performance.now() + 230; fn(); }
-  function start() { state = { version: 1, sceneId: first, route: null, verdict: null, history: [] }; go(first); }
+  function startAt(id) { state = { version: 1, sceneId: id, route: null, verdict: null, history: [] }; go(id); }
+  function start() { startAt(first); }
   function restart() {
     if (!state) { start(); return; }
     openDialog('처음부터 시작할까요?', [el('p', '', '지금까지의 진행과 마지막 결과가 새 이야기로 바뀝니다.')], '취소');
@@ -198,7 +199,9 @@
     e.reactions.forEach(([name, text]) => { const row = el('div', 'reaction'); row.append(el('strong', '', name), el('p', '', `“${text}”`)); reactions.append(row); });
     inner.append(reactions);
     const actions = el('div', 'result-actions');
-    actions.append(button('실제 기록과 비교하기', showSource, 'primary'), button('처음부터 다시 하기', restart), button('제목으로', () => { view = 'title'; render(); }));
+    actions.append(button(e.source ? '이야기 배경 보기' : '실제 기록과 비교하기', showSource, 'primary'),
+      button('다른 곳으로 가기', () => startAt('destination')),
+      button('처음부터 다시 하기', restart), button('제목으로', () => { view = 'title'; render(); }));
     inner.append(actions);
     main.append(inner); shell.append(main);
   }
@@ -231,11 +234,16 @@
     openDialog('대화 기록', content.length ? content : [el('p', '', '아직 나눈 대화가 없습니다.')]);
   }
   function showSource() {
+    const source = endings[nodes[state?.sceneId]?.verdict]?.source;
+    if (source) {
+      openDialog('이야기의 배경', [el('h3', '', source.title), el('p', '', source.text)], '결말로 돌아가기');
+      return;
+    }
     const parts = [
       el('h3', '', '실록에 있는 내용'),
       el('p', '', '『숙종실록』 15권, 숙종 10년(1684) 2월 18일(음력) 1번째 기사에는 포청에 갇힌 검계 구성원들의 죄를 구분하고, 관련자들의 구금이 지체되지 않도록 하자는 논의가 나옵니다. 숙종은 경중을 가려 보고하도록 했습니다.'),
       el('h3', '', '게임이 만든 내용'),
-      el('p', '', '숙종의 암행과 길 안내, 청년·상인·군관의 구체적인 사건과 대사, 두 조사 경로와 세 결말은 창작입니다. 숙종의 가벼운 말투와 성격 역시 이 작품을 위한 각색입니다. 이 기사는 숙종이 직접 암행 수사를 했다는 기록이 아닙니다.')
+      el('p', '', '포목상 편의 암행과 길 안내, 청년·상인·군관의 구체적인 사건과 대사, 두 조사 경로와 세 결말은 창작입니다. 숙종의 가벼운 말투와 성격 역시 이 작품을 위한 각색입니다. 이 기사는 숙종이 직접 암행 수사를 했다는 기록이 아닙니다.')
     ];
     const link = el('a', '', '실록 원문·국역 열기'); link.href = 'https://sillok.history.go.kr/id/ksa_11002018_001'; link.target = '_blank'; link.rel = 'noopener noreferrer';
     parts.push(link); openDialog('실제 기록과 비교하기', parts, '결말로 돌아가기');
